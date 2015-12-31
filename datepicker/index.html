@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="css/datepicker.css">
+    <link href="css/font-awesome.css" rel="stylesheet" />
+    <style>
+        body {
+            font-family: Verdana;
+        }
+
+        h1 {
+            font-size: 25px;
+        }
+
+        input {
+            border: 1px solid #aaa;
+            padding: 5px;
+            width: 200px;
+        }
+        .outline {
+            border: 1px solid black;
+            padding: 10px;
+            margin: 10px;
+            width: 50%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="outline">
+        <h4>Run the date picker calling a factory method with a single element</h4>
+        <div>
+            <input class="calendar-input-factory-single">
+        </div>
+    </div>
+    <div class="outline">
+        <h4>Run the date picker calling a factory method with a multiple elements</h4>
+        <div>
+            <input class="calendar-input-factory-multiple">
+        </div>
+        <p></p>
+        <div>
+            <input class="calendar-input-factory-multiple">
+        </div>
+        <p></p>
+        <div>
+            <input class="calendar-input-factory-multiple">
+        </div>
+    </div>
+    <div class="outline">
+        <h4>Run the date picker as a jquery plugin on multiple elements</h4>
+        <div>
+            <input class="calendar-input">
+        </div>
+        <p></p>
+        <div>
+            <input class="calendar-input">
+        </div>
+        <p></p>
+        <div>
+            <input class="calendar-input">
+        </div>
+    </div>
+    <script src="src/jquery-2.1.4.js"></script>
+    <script src="src/datepicker.js"></script>
+    <script src="src/moment.js"></script>
+    <script>
+        widgets.datePickerFactory($('.calendar-input-factory-single'));
+        widgets.datePickerFactory($('.calendar-input-factory-multiple'));
+        $('.calendar-input').datePicker();
+    </script>
+</body>
+</html>
