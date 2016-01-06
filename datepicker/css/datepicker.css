@@ -91,17 +91,6 @@
   border: 1px solid #fed22f;
   color: #363636;
 }
-.datepicker-wrapper .datepicker-calendar .selected .datepicker-day {
-  background-color: #1c94c4;
-  color: #f6f6f6;
-}
-.datepicker-wrapper .datepicker-calendar .disabled .datepicker-day,
-.datepicker-wrapper .datepicker-calendar .disabled .datepicker-day:hover {
-  background-color: #eee;
-  border: 1px dotted #ccc;
-  color: #bbb;
-  cursor: default;
-}
 .open .datepicker-calendar {
   display: block;
 }

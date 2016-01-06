@@ -26,7 +26,6 @@
         this.element = $(element);
         this.options = options || {};
         this.init();
-        return this;
     }
 
     DatePicker.prototype = {
@@ -43,12 +42,8 @@
                     return this.currentDate.getFullYear();
                 },
                 month: {
-                    integer: function () {
+                    index: function () {
                         return this.currentDate.getMonth();
-                    },
-                    string: function (shorthand) {
-                        var month = this.currentDate.getMonth();
-                        return this.monthToString(month, shorthand);
                     }
                 },
                 day: function () {
@@ -59,7 +54,7 @@
                 string: function () {
                     return this.monthToString(this.currentMonthView, this.config.shorthandCurrentMonth);
                 },
-                numDays: function () {
+                days: function () {
                     return this.currentMonthView === 1 && (((this.currentYearView % 4 === 0) && (this.currentYearView % 100 !== 0)) || (this.currentYearView % 400 === 0)) ? 29 : this.metadata.daysInMonth[this.currentMonthView];
                 }
             }
@@ -77,7 +72,7 @@
         },
         buildCalendar: function () {
             var firstOfMonth = new Date(this.currentYearView, this.currentMonthView, 1).getDay();
-            var daysInMonth = this.date.month.numDays.call(this);
+            var daysInMonth = this.date.month.days.call(this);
             var calendarFragment = document.createDocumentFragment();
             var row = $('<tr/>');
             var dayCount;
@@ -90,7 +85,7 @@
             if (firstOfMonth > 0) {
                 row.html('<td colspan="' + firstOfMonth + '">&nbsp;</td>');
             }
-            var currentMonth = this.date.current.month.integer.call(this);
+            var currentMonth = this.date.current.month.index.call(this);
             var currentDay = this.date.current.day.call(this);
             var selected = '';
             for (var dayNumber = 1; dayNumber <= daysInMonth; dayNumber++) {
@@ -106,7 +101,7 @@
             calendarFragment.appendChild(row.get(0));
             this.calendar.append(this.calendarBody.append(calendarFragment));
         },
-        updateNavigation: function () {
+        updateNav: function () {
             this.navigationCurrentMonth.html(this.date.month.string.call(this) + ' ' + this.currentYearView);
         },
         buildNav: function () {
@@ -114,11 +109,11 @@
             var monthNavigation = $('<span class="datepicker-prev-month">&lt;</span><span class="datepicker-next-month">&gt;</span>');
             months.html(monthNavigation);
             months.append(this.navigationCurrentMonth);
-            this.updateNavigation();
+            this.updateNav();
             this.calendarContainer.append(months);
             monthNavigation.on('click', this.onChangeMonth.bind(this));
         },
-        handleYearChange: function () {
+        onMonthChange: function () {
             if (this.currentMonthView < 0) {
                 this.currentYearView--;
                 this.currentMonthView = 11;
@@ -139,7 +134,7 @@
             var target = event.target;
             var targetClass = target.className;
             var currentTimestamp;
-            if (targetClass && (targetClass === 'datepicker-day' && !$(target.parentNode).hasClass('disabled'))) {
+            if (targetClass && (targetClass === 'datepicker-day')) {
                 this.selectedDate = {
                     day: parseInt(target.innerHTML, 10),
                     month: this.currentMonthView,
@@ -148,7 +143,6 @@
                 currentTimestamp = new Date(this.selectedDate.year, this.selectedDate.month, this.selectedDate.day).getTime();
                 this.element.val(moment(currentTimestamp).format(this.config.dateFormat));
                 this.onClose();
-                this.buildCalendar();
             }
         },
         buildWidget: function () {
@@ -178,12 +172,13 @@
             }
             if (this.wrapperElement && $(this.wrapperElement).hasClass('open')) {
                 this.onClose();
+                this.isOpen = false;
             } else {
                 $(this.wrapperElement).addClass('open');
+                this.isOpen = true;
             }
-            this.isOpen = true;
         },
-        onClose: function (evt) {
+        onClose: function () {
             $(document).off('click', this.documentClick);
             if (this.wrapperElement) {
                 $(this.wrapperElement).removeClass('open');
@@ -201,8 +196,8 @@
             event.stopImmediatePropagation();
             var targetClass = event.target.className;
             targetClass === 'datepicker-prev-month' ? this.currentMonthView-- : this.currentMonthView++;
-            this.handleYearChange();
-            this.updateNavigation();
+            this.onMonthChange();
+            this.updateNav();
             this.buildCalendar();
         },
         init: function () {
@@ -219,7 +214,7 @@
             this.currentDate = new Date(),
             this.config = $.extend({}, this.defaultConfig, this.options);
             this.currentYearView = this.date.current.year.call(this);
-            this.currentMonthView = this.date.current.month.integer.call(this);
+            this.currentMonthView = this.date.current.month.index.call(this);
             this.currentDayView = this.date.current.day.call(this);
             this.bindEvents();
             this.createBoilerPlate();

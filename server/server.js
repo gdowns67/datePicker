@@ -1,9 +1,5 @@
-var logger = require('morgan');
 var express = require('express');
-var url = require('url');
-var path = require('path');
 var app = express();
-var bodyParser = require('body-parser');
 
 app.listen('8082');
 
