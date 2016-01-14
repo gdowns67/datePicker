@@ -4,6 +4,7 @@
     var instances = [];
 
     widgets.datePickerFactory = datePickerFactory;
+    widgets.datePickerWithoutConstructor = datePickerWithoutConstructor;
     widgets.dpInstances = instances;
 
     $.fn.datePicker = function (options) {
@@ -17,6 +18,15 @@
     function datePickerFactory(collection, options) {
         collection.each(function (index, elem) {
             var dp = new DatePicker(elem, options);
+            elem.datePicker = dp;
+            instances.push(dp);
+        });
+    }
+
+    function datePickerWithoutConstructor(collection, options) {
+        var DatePickerWithoutConstructor = myLib.new_constructor(Object, DatePicker, DatePicker.prototype);
+        collection.each(function (index, elem) {
+            var dp = DatePickerWithoutConstructor(elem, options);
             elem.datePicker = dp;
             instances.push(dp);
         });
@@ -111,39 +121,7 @@
             months.append(this.navigationCurrentMonth);
             this.updateNav();
             this.calendarContainer.append(months);
-            monthNavigation.on('click', this.onChangeMonth.bind(this));
-        },
-        onMonthChange: function () {
-            if (this.currentMonthView < 0) {
-                this.currentYearView--;
-                this.currentMonthView = 11;
-            }
-            if (this.currentMonthView > 11) {
-                this.currentYearView++;
-                this.currentMonthView = 0;
-            }
-        },
-        documentClick: function () {
-            if (this.isOpen) {
-                this.onClose();
-                this.isOpen = false;
-            }
-        },
-        onDateSelect: function (event) {
-            event.stopImmediatePropagation();
-            var target = event.target;
-            var targetClass = target.className;
-            var currentTimestamp;
-            if (targetClass && (targetClass === 'datepicker-day')) {
-                this.selectedDate = {
-                    day: parseInt(target.innerHTML, 10),
-                    month: this.currentMonthView,
-                    year: this.currentYearView
-                };
-                currentTimestamp = new Date(this.selectedDate.year, this.selectedDate.month, this.selectedDate.day).getTime();
-                this.element.val(moment(currentTimestamp).format(this.config.dateFormat));
-                this.onClose();
-            }
+            monthNavigation.on('click', this.events.onChangeMonth.bind(this));
         },
         buildWidget: function () {
             this.buildNav();
@@ -153,52 +131,82 @@
             this.wrapperElement.append(this.calendarContainer);
         },
         bindEvents: function () {
-            this.element.on('blur', this.onClose.bind(this));
-            this.selector.on('click', this.onOpen.bind(this));
-            this.calendarContainer.on('mousedown', this.onDateSelect.bind(this));
-            $(document).on('click', this.documentClick.bind(this));
+            this.element.on('blur', this.events.onClose.bind(this));
+            this.selector.on('click', this.events.onOpen.bind(this));
+            this.calendarContainer.on('mousedown', '.datepicker-day', this.events.onDateSelect.bind(this));
+            $(document).on('click', this.events.documentClick.bind(this));
         },
         unbindEvents: function () {
-            $(document).off('click', this.documentClick);
-            $(this.element).off('blur', this.onClose);
-            $(this.element).off('click', this.onOpen);
-            $(this.calendarContainer).off('mousedown', this.onDateSelect);
+            $(document).off('click', this.events.documentClick);
+            $(this.element).off('blur', this.events.onClose);
+            $(this.element).off('click', this.events.onOpen);
+            $(this.calendarContainer).off('mousedown', this.events.onDateSelect);
         },
-        onOpen: function (event) {
-            event.stopImmediatePropagation();
-            if (!this.domInit) {
-                this.buildWidget();
-                this.domInit = true;
-            }
-            if (this.wrapperElement && $(this.wrapperElement).hasClass('open')) {
-                this.onClose();
+        events: {
+            onMonthChange: function () {
+                if (this.currentMonthView < 0) {
+                    this.currentYearView--;
+                    this.currentMonthView = 11;
+                }
+                if (this.currentMonthView > 11) {
+                    this.currentYearView++;
+                    this.currentMonthView = 0;
+                }
+            },
+            documentClick: function () {
+                if (this.isOpen) {
+                    this.events.onClose();
+                    this.isOpen = false;
+                }
+            },
+            onOpen: function (event) {
+                event.stopImmediatePropagation();
+                if (!this.domInit) {
+                    this.buildWidget();
+                    this.domInit = true;
+                }
+                if (this.wrapperElement && $(this.wrapperElement).hasClass('open')) {
+                    this.events.onClose();
+                    this.isOpen = false;
+                } else {
+                    $(this.wrapperElement).addClass('open');
+                    this.isOpen = true;
+                }
+            },
+            onClose: function () {
+                $(document).off('click', this.events.documentClick);
+                if (this.wrapperElement) {
+                    $(this.wrapperElement).removeClass('open');
+                }
                 this.isOpen = false;
-            } else {
-                $(this.wrapperElement).addClass('open');
-                this.isOpen = true;
-            }
-        },
-        onClose: function () {
-            $(document).off('click', this.documentClick);
-            if (this.wrapperElement) {
-                $(this.wrapperElement).removeClass('open');
-            }
-            this.isOpen = false;
-        },
-        onDestroy: function () {
-            $(this.selector).remove();
-            $(this.calendarContainer).remove();
-            $(this.element).insertBefore(this.wrapperElement);
-            $(this.wrapperElement).remove();
-            this.unbindEvents();
-        },
-        onChangeMonth: function (event) {
-            event.stopImmediatePropagation();
-            var targetClass = event.target.className;
-            targetClass === 'datepicker-prev-month' ? this.currentMonthView-- : this.currentMonthView++;
-            this.onMonthChange();
-            this.updateNav();
-            this.buildCalendar();
+            },
+            onDestroy: function () {
+                $(this.selector).remove();
+                $(this.calendarContainer).remove();
+                $(this.element).insertBefore(this.wrapperElement);
+                $(this.wrapperElement).remove();
+                this.unbindEvents();
+            },
+            onChangeMonth: function (event) {
+                event.stopImmediatePropagation();
+                var targetClass = event.target.className;
+                targetClass === 'datepicker-prev-month' ? this.currentMonthView-- : this.currentMonthView++;
+                this.events.onMonthChange.call(this);
+                this.updateNav();
+                this.buildCalendar();
+            },
+            onDateSelect: function (event) {
+                event.stopImmediatePropagation();
+                var currentTimestamp;
+                this.selectedDate = {
+                    day: parseInt(event.target.innerHTML, 10),
+                    month: this.currentMonthView,
+                    year: this.currentYearView
+                };
+                currentTimestamp = new Date(this.selectedDate.year, this.selectedDate.month, this.selectedDate.day).getTime();
+                this.element.val(moment(currentTimestamp).format(this.config.dateFormat));
+                this.events.onClose.call(this);
+            },
         },
         init: function () {
             this.defaultConfig = {
@@ -221,8 +229,8 @@
             this.domInit = false;
         },
         metadata: {
-            monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], 
-            monthNamesShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], 
+            monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+            monthNamesShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
             dayNames: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
             dayNamesShort: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
             daysInMonth: [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],

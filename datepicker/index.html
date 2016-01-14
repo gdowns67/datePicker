@@ -39,6 +39,10 @@
         <div>
             <input class="calendar-input-factory-multiple">
         </div>
+        <p></p>
+        <div>
+            <input class="calendar-input-without-factory-single">
+        </div>
     </div>
     <div class="outline">
         <h4>Run the date picker as a jquery plugin on multiple elements</h4>
@@ -55,10 +59,12 @@
         </div>
     </div>
     <script src="src/jquery-2.1.4.js"></script>
+    <script src="src/constructor.js"></script>
     <script src="src/datepicker.js"></script>
     <script src="src/moment.js"></script>
     <script>
         widgets.datePickerFactory($('.calendar-input-factory-single'));
+        widgets.datePickerWithoutConstructor($('.calendar-input-without-factory-single'));
         widgets.datePickerFactory($('.calendar-input-factory-multiple'));
         $('.calendar-input').datePicker();
     </script>
